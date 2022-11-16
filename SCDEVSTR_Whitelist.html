@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Merkletree</title>
+  <script src="https://cdn.jsdelivr.net/npm/merkletreejs@latest/merkletree.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/keccak256@latest/keccak256.js"></script>
+  <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
+</head>
+<body>
+<script type="text/javascript">  
+  const { keccak256 } = ethers.utils
+
+  // Whitelist
+  const whitelist = ['0xa44c743bf3105ae25c94d870b9913a346eabf10f','0xaee2b529d29aa9cd4a56d9778ce088837c4b2e0a','0xfb1175cfe5b6b39d30917cbdfd08fa82165aa7ae','0xd72c27bf47f7f71d58261507ae6a7f27c9ffae6c','0x13f86e265a2f66ad664bf5a3d1dccd115204b3bb','0xb82e8bce140e4c4ee0d3963484cb7648f1af0c46','0x7e742e90decd7bf280ee3d625d90e84b67b50505','0x5c5db6c52a70359f8266efad465f4d5da3cbbfde','0x27e12c5f1d315a75337190e23fc85d1590156d30','0x83d5ddbef2b448f09ee7d8293ba07aabeec37971','0x867cdaf0513c4b6b4a91ceee5c850c87093e172f','0xaeae109ab3945fc54465f24bc6eb37941c69aa58','0x31cb2f55a1e34d61c8558f5d8b7c600e62073b03','0xd5d4b515c65d1b2c6bad1ce2373a73254b6c0296','0xc445278e3db529824f570287294f20b76d8960a7','0x7a8398e9da53fc9184e03612aaceed08ce0e24af','0xdabc4b17eceeb4a11010f9c11a413a333ed7c25f','0x5831240fd3f7593f627da552fe7ddd60e9685723','0xc1c40ad78b96bea82fd4b491c005146e2a0dd325','0x85f15d0e945d96cf43a9156bc6ff63f8821b904a','0x5bae9c2161576a1ae2ae2d6ba95299a2d97dcfc3','0x01ea60f8f2500d80c2ba0476b8bf99f87d99f813','0x592cc2bc5c1330279bEb8188a818f724339b3621']
+
+  // Adres verilerimizi hash'ini alarak yapraklara (leaves) çeviriyoruz
+  const leaves = whitelist.map(x => keccak256(x))
+
+  // Merkle ağacımızı oluşturuyoruz
+  const tree = new MerkleTree(leaves, keccak256, { sortPairs: true })
+
+  // Ağcımızın kökünü konsola yazdırıyoruz. Bu kökü kontrata yüklememiz gerekiyor.
+  console.log("Root: " + tree.getHexRoot())
+  // Çıktı: 0x235a431d30b7cc19b656d1ef14a6c5a257aab377a5854800c2d5446a1d3beb33
+
+  // web sitemize bağlanan cüzdanın adresinden merkle yaprağı (leaf) üretiyoruz
+  const leaf = keccak256("0x5831240fd3f7593f627da552fe7ddd60e9685723") 
+  console.log("leaf: " + leaf)
+  // Çıktı: 0x42984d0c33ff73f39c28bc099e07c5717f7083992ea041a856a7f2b69564eed5
+  
+  // Bu yaprağı kullanarak bu adrese özel kanıt üretiyoruz. Eğer adres ağaçta (listede) yoksa proof üretilemez.
+  const proof = tree.getHexProof(leaf)
+
+  // Kanıtımız hazır. Kontrata göndereceğimiz kanıt budur. Gördüğünüz gibi kanıtımız bir bytes32[] dizisidir.
+  console.log(proof)
+  // Çıktı ['0x4f0cb1eccc367bed452a2941a64740aff2227db53dd7139ba9c3b54f2e4822c0', '0x1a6b8e480789893ee8a77417603ca1c1f9f72aeba6defb7f6ddb60c78841da96', '0x8e424c205c169cdb86c872995fcb163d2fb246999e13fa2bcba7e771b1dc8d1f', '0x9953a72447b19073e3f67d7050896aefb08820c53efc8f0c8af89c14e3eb0e2a']
+
+  // Bu kanıtı direkt etherscan üzerinden kontrata manuel olarak verecek isek dizi elemanlarının etrafındaki tırnak '' işaretlerini silmemiz gerekiyor. [eleman1, eleman2, eleman3] şeklinde.
+
+  // Yani böyle:[0x4f0cb1eccc367bed452a2941a64740aff2227db53dd7139ba9c3b54f2e4822c0,0x1a6b8e480789893ee8a77417603ca1c1f9f72aeba6defb7f6ddb60c78841da96, 0x8e424c205c169cdb86c872995fcb163d2fb246999e13fa2bcba7e771b1dc8d1f,0x9953a72447b19073e3f67d7050896aefb08820c53efc8f0c8af89c14e3eb0e2a]
+
+</script>
+</body>
+</html>
