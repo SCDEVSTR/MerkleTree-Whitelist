@@ -31,6 +31,9 @@ contract SCDEVSTR_Solo_Whitelist is ERC721, Ownable {
 
     // Root'umuzu ayarlıyoruz. Dilersek burada merkleRoot; diyerek boş olarak başlayıp, constructor kısmında da root'umuzu atayabiliriz. Zaten public olduğu için sonuç değişmez.
     bytes32 public merkleRoot = 0x235a431d30b7cc19b656d1ef14a6c5a257aab377a5854800c2d5446a1d3beb33;
+    
+    // Mintleyenleri kaydedelim
+    mapping (address => bool) claimed;
 
     constructor(bytes32 memory _merkleRoot) ERC721("SCDEVSTR_Whitelist", "SDT") {
         // Root'umuzu yukarıda merkleRoot; diyip geçmiş ve boş bırakmışsak, contratı yayınlarken constructor ile de bu şekilde atama yapabiliriz.
@@ -51,7 +54,9 @@ contract SCDEVSTR_Solo_Whitelist is ERC721, Ownable {
     // Whitelist'imiz ile mint fonksiyonumuz
     function whitelistMint(bytes32[] calldata _merkleProof) public {
         require(merkleCheck(_merkleProof), "You are not in the whitelist!");
-
+        require(!claimed[_msgSender(), "You have already minted!");
+        claimed[_msgSender()] = true;
+        
         safeMint(_msgSender());
     }
 
