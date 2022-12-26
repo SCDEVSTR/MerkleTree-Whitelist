@@ -29,6 +29,8 @@ contract SCDEVSTR_Multi_Whitelist is ERC721, Ownable {
     uint256[] public mintPrices;
 
     uint256 public publicMintPrice = 1 ether;   // Listede yer almayanlar için belirlediğimiz satış fiyatı
+    
+    mapping (address => bool) minted;
 
     constructor(bytes32[] memory _merkleRoot) ERC721("SCDEVSTR_Whitelist", "SDT") {
         merkleRoot = _merkleRoot;
@@ -89,8 +91,9 @@ contract SCDEVSTR_Multi_Whitelist is ERC721, Ownable {
 
     // Herkese açık mint fonksiyonumuz
     function mint(bytes32[] calldata _merkleProof, uint256 _mintAmount) public {
-        require(_mintAmount == 3, "Mint amount can not exceed 1");  // adres başına mint miktarı sınırı
+        require(_minteAmount + minted[_msgSender()] <= 3, "Mint amount can not exceed 3");  // adres başına mint miktarı sınırı
         require(msg.value >= mintCost(_merkleProof), "Invalid price input!"); // Gerekli mint fiyatını göndermezse işlem iptal
+        minted[_msgSender()] += _mintAmount;
 
         // Kaç adet mintlemeyi arzulamışsa o kadar mintliyoruz. Tek tek mintliyoruz çünkü tek tek token ID artıyor.
         for (uint256 i = 0; i < _mintAmount; i++) {
